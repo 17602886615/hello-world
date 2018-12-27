@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/backend/controllers/TimedTaskController.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/controllers/UploadFileController.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/models/UploadForm.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/views/dev-manager/act-log.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/views/upload-file/upload.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/shop/getdistance.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/weixin/api/BrandGoodsApi.php" charset="UTF-8" />
+  </component>
+</project>

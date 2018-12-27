@@ -1,0 +1,215 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Administrator
+ * Date: 2016/3/31
+ * Time: 17:01
+ */
+namespace backend\controllers;
+
+use backend\models\AgentInfo;
+use backend\models\DevFactory;
+use backend\models\FactoryInfo;
+use yii;
+use backend\models\AdminRoles;
+use backend\models\User;
+use yii\data\ActiveDataProvider;
+use backend\models\AdminRoleUser;
+use backend\models\Address;
+class AuthUserController extends BaseController
+{
+
+    public function getIndexData2($content,$where)
+    {
+        if($where){
+            $query = User::find()->where($where);
+        }else{
+            $query = User::find();
+        }
+
+
+//        $query=yii\db\ActiveRecord::findBySql("select * from admin_user".(empty($where)?'':' where '.$where));
+//        var_dump($query);exit;
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'sort' => [
+                'defaultOrder' => [
+                    'updated_at' => SORT_DESC,
+                ]
+            ]
+        ]);
+        return [
+            'content'=>$content,
+            'dataProvider' => $dataProvider,
+        ];
+    }
+    public function actionAuthlist(){
+
+        $content=trim(Yii::$app->request->post('content'));
+
+        $where='';
+        if($content!=''){
+            $where.=" username like '%$content%' or type like '%$content%'";
+        }
+
+
+
+        return $this->render('authlist', $this->getIndexData2($content,$where));
+}
+
+    public function actionCreate()
+    {
+        $model = new User();
+        $model->setScenario('create');
+        $rolesModel = new AdminRoleUser();
+        if(yii::$app->getRequest()->getIsPost()){
+            if($model->load(Yii::$app->getRequest()->post()) && $model->validate() && $rolesModel->load(yii::$app->getRequest()->post()) && $rolesModel->validate() && $model->save() ){
+                $rolesModel->uid = $model->getPrimaryKey();
+                $rolesModel->save();
+                Yii::$app->getSession()->setFlash('success', yii::t('app', 'Success'));
+                $logic_type=$model['logic_type'];
+                if($logic_type==1){
+                    //水厂
+              $res=   (new FactoryInfo())->insertBaseInfo($model["username"],$model["password"]);
+                }
+                if($logic_type==2){
+                    //设备厂家
+                    (new DevFactory())->insertBaseInfo($model["username"],$model["password"]);
+                }
+                if($logic_type==3||$logic_type==4){
+                    //区域代理
+                  (new AgentInfo())->insertBaseInfo($model["username"],$model["password"],$logic_type);
+                }
+
+                return $this->redirect(['index']);
+            }else{
+                $errors = $model->getErrors();
+                $err = '';
+                foreach($errors as $v){
+                    $err .= $v[0].'<br>';
+                }
+                Yii::$app->getSession()->setFlash('error', $err);
+            }
+        }
+        $temp = AdminRoles::find()->asArray()->all();
+        $roles = [];
+        foreach ($temp as $v){
+            $roles[$v['id']] = $v['role_name'];
+        }
+        return $this->render('create', [
+            'model' => $model,
+            'rolesModel' => $rolesModel,
+            'roles' => $roles
+        ]);
+    }
+
+    public function actionUpdate($id)
+    {
+        $model = $this->getModel($id);
+        $model->setScenario('update');
+        $rolesModel = AdminRoleUser::findOne(['uid'=>$id]);
+        if($rolesModel == NULL){
+            $rolesModel = new AdminRoleUser();
+            $rolesModel->uid = $id;
+        }
+        if ( Yii::$app->getRequest()->getIsPost() ) {
+            if( $model->load(Yii::$app->request->post()) && $model->validate() && $rolesModel->load(yii::$app->getRequest()->post()) && $rolesModel->validate() && $model->save() && $rolesModel->save() ){
+                Yii::$app->getSession()->setFlash('success', yii::t('app', 'Success'));
+
+                return $this->redirect(['update', 'id'=>$model->getPrimaryKey()]);
+            }else{
+                $errors = $model->getErrors();
+                $err = '';
+                foreach($errors as $v){
+                    $err .= $v[0].'<br>';
+                }
+                Yii::$app->getSession()->setFlash('error', $err);
+            }
+            $model = User::findOne(['id'=>yii::$app->getUser()->getIdentity()->getId()]);
+        }
+
+        $temp = AdminRoles::find()->asArray()->all();
+        $roles = [];
+        foreach ($temp as $v){
+            $roles[$v['id']] = $v['role_name'];
+        }
+        return $this->render('update', [
+            'model' => $model,
+            'rolesModel' => $rolesModel,
+            'roles' => $roles
+        ]);
+    }
+
+    public function getModel($id = '')
+    {
+        return User::findOne(['id'=>$id]);
+    }
+
+    public function actionUpdateSelf()
+    {
+        $model = User::findOne(['id'=>yii::$app->getUser()->getIdentity()->getId()]);
+        $model->setScenario('self-update');
+        if(yii::$app->getRequest()->getIsPost()){
+            if( $model->validate() && $model->load(yii::$app->getRequest()->post()) && $model->self_update() ){
+                Yii::$app->getSession()->setFlash('success', yii::t('app', 'Success'));
+            }else{
+                $errors = $model->getErrors();
+                $err = '';
+                foreach($errors as $v){
+                    $err .= $v[0].'<br>';
+                }
+                Yii::$app->getSession()->setFlash('error', $err);
+            }
+            $model = User::findOne(['id'=>yii::$app->getUser()->getIdentity()->getId()]);
+        }
+        return $this->render('update', [
+            'model' => $model,
+        ]);
+    }
+
+    public function actionUpdateSelfAvatar()
+    {
+        $model = User::findOne(['id'=>yii::$app->getUser()->getIdentity()->getId()]);
+        $model->setScenario('update');
+        if(yii::$app->getRequest()->getIsPost() && $model->validate() && $model->load(yii::$app->getRequest()->post()) && $model->save()){
+            return $this->redirect(['site/main']);
+        }
+        return $this->render('update-self-avatar', [
+            'model' => $model,
+        ]);
+    }
+
+    public function actionAssign($uid='')
+    {
+        $urlobj = $this->getParam("Url");//返回参数记录
+        $model = AdminRoleUser::findOne(['uid'=>$uid]);//->createCommand()->getRawSql();var_dump($model);die;
+        if($model == ''){//echo 11;die;
+            $model = new AdminRoleUser();
+        }
+        $model->uid = $uid;
+        if( yii::$app->getRequest()->getIsPost() ){
+            if($model->load(yii::$app->getRequest()->post()) && $model->save()){
+                Yii::$app->getSession()->setFlash('success', yii::t('app', 'success'));
+                return $this->redirect(['admin-user/index']);
+            }else{//var_dump($model->getErrors());die;
+                $errors = $model->getErrors();
+                $err = '';
+                foreach($errors as $v){
+                    $err .= $v[0].'<br>';
+                }
+                Yii::$app->getSession()->setFlash('error', $err);
+            }
+        }
+        $temp = AdminRoles::find()->asArray()->all();
+        $roles = [];
+        foreach ($temp as $v){
+            $roles[$v['id']] = $v['role_name'];
+        }
+        return $this->render('assign', [
+            'model' => $model,
+            'roles' => $roles,
+            'url'=>$urlobj
+        ]);
+    }
+
+}

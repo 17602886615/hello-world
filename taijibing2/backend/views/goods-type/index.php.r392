@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>商品分类管理</title>
+	 <link rel="stylesheet" href="./static/css/chosen.css"/>
+
+
+	    <link rel="stylesheet" type="text/css" href="./static/css/conmones.css">
+</head>
+
+<style type="text/css" media="screen">
+	#btnop{
+		width:100%;
+		    display: inline-box;
+		    display: -webkit-inline-box;
+
+	}
+	#btnop p{
+		margin:0;
+		margin-left:10px;
+		padding:5px 10px;
+		background:#2D3136;
+		border-radius: 5px ;
+		color:#fff;
+		margin-top:20px;
+	}
+	#btnop p:hover{
+		background-color:#454a50;
+	}
+	.inp{
+		width: 50px;
+    line-height: 11px;
+    margin-top: 10px;
+    margin-left: 20px;
+    height: 30px;
+    display: inline-block;
+    text-align: center;
+    
+;
+	}
+	input[type=submit]:hover{
+		    background-color: #d46d58;
+	}
+
+	td,th{
+		padding:3px 5px;font-size:15px;
+	}
+</style>
+<body>
+
+	<div id="type_manage">
+
+           <header>
+           <form action="./index.php?r=goods-type/index" method="post" accept-charset="utf-8">
+           		
+        
+	          <div style="margin-bottom:10px;" class="condition"> 
+	          	  <span style="padding-left:5px;display:inline-block"><label>商品分类:</label> 
+                    <select  style="width:250px;" name='parent_id' id="type1" class="type1"> 
+					    <option value="">请选择</option>
+					</select>
+
+	          	  </span>
+	          	  <span style="padding-left:5px;display:inline-block"><label>商品分类:</label> 
+                    <select  style="width:250px;" name='id'  id="type2" class="type2"> 
+					    <option value="">请选择</option>
+					</select>
+
+	          	  </span>
+				<input class='inp' type="submit" style='width:50px; background-color: #E46045;border: none;color:#fff;' value="保存" >
+
+<div id="btnop" class="">
+           	     <a href="./index.php?r=goods-type/add-goods-type" title=""><p class='Establish'>创建</p></a>
+                <p class='Refresh' >刷新</p>
+           	     
+           </div>
+
+
+	          </div>
+
+	         
+           	</form>
+
+           	   
+           </header>
+           <div	>
+           	   <table style='width:100%;border-collapse:separate; border-spacing:0px 10px;'>	
+           	   	<thead>
+           	   		<tr>
+           	   			<th>序号</th>
+           	   		
+           	   			<th>商品分类</th>
+           	   			<th>二级分类</th>
+       	
+           	   			<th>添加时间</th>
+           	   			<th>更新时间</th>
+           	   			<th>修改</th>
+           	   			<th>删除</th>
+           	   		</tr>
+           	   	</thead>
+           	   	<tbody   style="">
+           	   		<tr>
+           	
+           	   		</tr>
+           	   	</tbody>
+           	   </table>
+           </div>	
+       
+	</div>
+
+</body>
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+
+ <script type="text/javascript" src="./static/js/chosen.jquery.min.js"></script>	
+<script> 
+  var type1=<?=json_encode($type1)?>;
+  var type2=<?=json_encode($type2)?>;
+  var data=<?=json_encode($datas)?>;
+  console.log(type1)
+  console.log(type2)
+  console.log(data)
+
+
+  if(type1.length){
+	for(var i=0;i<type1.length;i++){
+		$("#type1").append(' <option  data-id="'+type1[i].Id+'" value="'+type1[i].Id+'">'+type1[i].Name+'</option>')
+	}
+	      $('.type1').chosen({
+	        no_results_text: "没有找到结果！",//搜索无结果时显示的提示
+	        placeholder_text_single:"无"
+	   });
+  }
+if(type2.length){
+	for(var i=0;i<type2.length;i++){
+		$("#type2").append(' <option  data-id="'+type2[i].Id+'" value="'+type2[i].Name+'">'+type2[i].Name+'</option>')
+	}
+	      $('.type2').chosen({
+	        no_results_text: "没有找到结果！",//搜索无结果时显示的提示
+	        placeholder_text_single:"无"
+	   });
+  }
+
+
+
+     $(function(){
+          if(data.length){
+          	  $("#type_manage tbody").empty();
+          	  for(var i=0;i<data.length;i++){
+          	  	   var item = data[i];
+          	  	   var IsShow='是';
+
+
+          	  	   if(item.IsShow<0){
+
+                        IsShow = '否';
+          	  	   }else{
+
+          	  	     	IsShow='是';
+          	  	   }
+          	  	 for (var z in item) {
+		  			if (item[z] == null) {
+		  				item[z] = '--'
+		  			}
+		  		}
+          	  	   var html = '<tr>';
+          	  	       html+='<td>'+(i+1)+'</td>';
+          	 
+          	  	       html+='<td>'+item.ParentName+'</td>';
+          	  	 
+                	       html+='<td class="idname" data1="'+item.type1_id+'" data2="'+item.type2_id+'">'+item.Name+'</td>';
+          	  	       html+='<td>'+item.RowTime+'</td>';
+          	  	       html+='<td>'+item.UpdateTime+'</td>';
+          	  	       html+='<td><a href="./index.php?r=goods-type/edit&type1_id='+item.type1_id+'&type2_id='+item.type2_id+'"><img src="/static/images3/edit.png" alt=""></a></td>';
+          	  	       html+='<td class="del"><img src="/static/images3/delete.png" alt=""></td>';
+          	  	       html+='</tr>';
+          	  	       $("#type_manage tbody").append(html)
+
+          	  }
+          }
+
+
+          $(document).on('click','.del',function(){
+            var type1_id = 	  $(this).parent().find('.idname').attr('data1');
+            var type2_id = 	  $(this).parent().find('.idname').attr('data2');
+            console.log(type1_id)
+            console.log(type2_id)
+            $.get('./index.php?r=goods-type/del&type1_id='+type1_id+'&type2_id='+type2_id, function(data) {
+            	//console.log(data)
+            });
+
+
+          }).on('click','.Refresh',function(){
+          	window.location.reload();
+          })
+
+        
+     })
+</script>
+</html>
